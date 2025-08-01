@@ -9,7 +9,10 @@ import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import site.lmacedo.kiekisensors.device.management.api.client.SensorMonitoringClient;
+import site.lmacedo.kiekisensors.device.management.api.model.SensorDetailOutput;
 import site.lmacedo.kiekisensors.device.management.api.model.SensorInput;
+import site.lmacedo.kiekisensors.device.management.api.model.SensorMonitoringOutput;
 import site.lmacedo.kiekisensors.device.management.api.model.SensorOutput;
 import site.lmacedo.kiekisensors.device.management.common.IdGenerator;
 import site.lmacedo.kiekisensors.device.management.domain.model.Sensor;
@@ -22,17 +25,28 @@ import site.lmacedo.kiekisensors.device.management.domain.repository.SensorRepos
 public class SensorController {
 
     private final SensorRepository sensorRepository;
+    private final SensorMonitoringClient sensorMonitoringClient;
 
     @GetMapping
     public PagedModel<SensorOutput> search(@PageableDefault Pageable pageable){
         Page<Sensor> sensors = sensorRepository.findAll(pageable);
-        return new PagedModel<>(sensors.map(this::convertToModel));
+        return new PagedModel<>(sensors.map(this::convertToOutput));
     }
 
     @GetMapping("{sensorId}")
     public SensorOutput getOne(@PathVariable TSID sensorId) {
         Sensor sensor = findById(sensorId);
-        return convertToModel(sensor);
+        return convertToOutput(sensor);
+    }
+
+    @GetMapping("{sensorId}/detail")
+    public SensorDetailOutput getOneWithDetail(@PathVariable TSID sensorId) {
+        Sensor sensor = findById(sensorId);
+        SensorMonitoringOutput monitoring = sensorMonitoringClient.getDetail(sensorId);
+        return SensorDetailOutput.builder()
+                .sensor(convertToOutput(sensor))
+                .monitoring(monitoring)
+                .build();
     }
 
     @PutMapping("{sensorId}")
@@ -45,7 +59,7 @@ public class SensorController {
         sensor.setProtocol(sensorInput.getProtocol());
         sensor.setModel(sensorInput.getModel());
         sensor = sensorRepository.saveAndFlush(sensor);
-        return convertToModel(sensor);
+        return convertToOutput(sensor);
     }
 
     @DeleteMapping("{sensorId}")
@@ -53,6 +67,7 @@ public class SensorController {
     public void delete(@PathVariable TSID sensorId) {
         Sensor sensor = findById(sensorId);
         sensorRepository.delete(sensor);
+        sensorMonitoringClient.disableMonitoring(sensorId);
     }
 
     @PutMapping("{sensorId}/enable")
@@ -61,6 +76,7 @@ public class SensorController {
         Sensor sensor = findById(sensorId);
         sensor.setEnabled(true);
         sensorRepository.saveAndFlush(sensor);
+        sensorMonitoringClient.enableMonitoring(sensorId);
     }
 
     @DeleteMapping("{sensorId}/enable")
@@ -69,6 +85,7 @@ public class SensorController {
         Sensor sensor = findById(sensorId);
         sensor.setEnabled(false);
         sensorRepository.saveAndFlush(sensor);
+        sensorMonitoringClient.disableMonitoring(sensorId);
     }
 
     @PostMapping
@@ -86,10 +103,10 @@ public class SensorController {
 
         sensor = sensorRepository.saveAndFlush(sensor);
 
-        return convertToModel(sensor);
+        return convertToOutput(sensor);
     }
 
-    private SensorOutput convertToModel(Sensor sensor) {
+    private SensorOutput convertToOutput(Sensor sensor) {
         return SensorOutput.builder()
                 .id(sensor.getId().getValue())
                 .name(sensor.getName())
