@@ -1,4 +1,4 @@
-package site.lmacedo.kiekisensors.device.management;
+package site.lmacedo.kiekisensors.device.management.common;
 
 import io.hypersistence.tsid.TSID;
 
