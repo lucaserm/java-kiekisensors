@@ -1,4 +1,4 @@
-package site.lmacedo.kiekisensors.device.management.api.controller;
+package site.lmacedo.kiekisensors.device.management.api.model;
 
 import lombok.Data;
 
