@@ -1,4 +1,4 @@
-package site.lmacedo.kiekisensors.device.management.domain.model;
+package site.lmacedo.kiekisensors.temperature.monitoring.domain.model;
 
 import io.hypersistence.tsid.TSID;
 import jakarta.persistence.Embeddable;
