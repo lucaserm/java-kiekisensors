@@ -1,4 +1,4 @@
-package site.lmacedo.kiekisensors.temperature.processing;
+package site.lmacedo.kiekisensors.temperature.processing.common;
 
 import com.fasterxml.uuid.Generators;
 import com.fasterxml.uuid.impl.TimeBasedEpochRandomGenerator;

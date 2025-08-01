@@ -1,4 +1,4 @@
-package site.lmacedo.kiekisensors.temperature.processing;
+package site.lmacedo.kiekisensors.temperature.processing.common;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
